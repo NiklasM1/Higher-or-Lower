@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "MySQLDriver",
+        "repositoryURL": "https://github.com/mcorega/MySqlSwiftNative",
+        "state": {
+          "branch": "master",
+          "revision": "66090f083cc17a815bcecfc3af56468718f91cd7",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}

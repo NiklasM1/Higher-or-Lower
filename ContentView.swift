@@ -2,42 +2,35 @@ import SwiftUI
 
 struct searches: View {
 	func fillArray() {
-		if randomIndex.count < 5 {
-			randomIndex = getRandIndexes()
+		products.append(getProducts(type: "Search", index: randomNumbers.popLast()!))
+		
+		if randomNumbers.count <= 0 {
+			randomNumbers = getRandNum(minimum: minimum, maximum: maximum)
 		}
 		
-		for x in randomIndex {
-			products.append(getProducts(type: "Search", index: x))
-			randomIndex.remove(x)
-			
-			if(products.count > call_size) {
-				return
-			}
+		if products.count <= 3 {
+			fillArray()
 		}
 	}
 	
 	func pressed(upper: Bool) {
-		if ((upper && products[0].value <= products[1].value) || (!upper && products[0].value >= products[1].value)) {
-			products.remove(at: 0)
+		products.remove(at: 0)
+		fillArray()
+		
+		if  (upper && products[0].value <= products[1].value) ||
+			(!upper && products[0].value >= products[1].value) ||
+			(products[0].value == 0 || products[1].value == 0) {
 			score += 1
-		} else {
-			highScore = max(highScore, score)
-			UserDefaults.standard.set(highScore, forKey: "HighScoreSearch")
-			score = 0
-			products = products_empty
-			fillArray()
-			products.remove(at: 0)
-			products.remove(at: 0)
+			return
 		}
 		
-		if products.count <= 4 {
-			fillArray()
-		}
-		
+		highScore = max(highScore, score)
+		UserDefaults.standard.set(highScore, forKey: "HighScoreSearch")
+		score = 0
 		return
 	}
 	
-	@State private var randomIndex = Set<Int>()
+	@State private var randomNumbers: [Int] = [0]
 	@State private var score: Int = 0
 	@State private var highScore: Int = 0
 	@State private var products: [Product] = products_empty
@@ -49,10 +42,10 @@ struct searches: View {
 //			Pictures
 			VStack {
 				Image(uiImage: products[0].picture)
-//				Image(uiImage: UIImage())
+					.ignoresSafeArea()
 				
 				Image(uiImage: products[1].picture)
-//				Image(uiImage: UIImage())
+					.ignoresSafeArea()
 			}
 			
 //			Rectangles
@@ -156,15 +149,15 @@ struct searches: View {
 				HStack {
 					Spacer()
 					Button {
-						pressed(upper: true)
-					} label: {
-						Label("HIGHER", systemImage: "arrowtriangle.up.fill")
-					}.buttonStyle(GrowingButton())
-					Spacer()
-					Button {
 						pressed(upper: false)
 					} label: {
 						Label("LOWER", systemImage: "arrowtriangle.down.fill")
+					}.buttonStyle(GrowingButton())
+					Spacer()
+					Button {
+						pressed(upper: true)
+					} label: {
+						Label("HIGHER", systemImage: "arrowtriangle.up.fill")
 					}.buttonStyle(GrowingButton())
 					Spacer()
 				}
@@ -173,7 +166,7 @@ struct searches: View {
 		}.onAppear{
 			highScore = UserDefaults.standard.integer(forKey: "HighScoreSearch")
 			(minimum, maximum) = setupConnection(type: "Search")
-			randomIndex = getRandIndexes()
+			randomNumbers = getRandNum(minimum: minimum, maximum: maximum)
 			fillArray()
 			products.remove(at: 0)
 			products.remove(at: 0)

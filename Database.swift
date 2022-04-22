@@ -33,14 +33,12 @@ func setupConnection(type: String) -> (Int, Int) {
 	return (0, 0)
 }
 
-func getRandIndexes(minimum: Int = minimum, maximum: Int = maximum) -> Set<Int> {
-	var randomIndex = Set<Int>()
-	
-	while randomIndex.count < maximum - 5 {
-		randomIndex.insert(Int.random(in: minimum ... maximum))
+func getRandNum(minimum: Int, maximum: Int, count: Int = 50) -> [Int] {
+	var set = Set<Int>()
+	while set.count < min(count, maximum-minimum) {
+		set.insert(Int.random(in: minimum...maximum))
 	}
-	
-	return randomIndex
+	return Array(set)
 }
 
 func getProducts(type: String, index: Int) -> Product {
@@ -71,7 +69,7 @@ private func getLimits() -> (Int, Int) {
 	var maximum = 0
 	
 	do {
-		let rows = try table!.select(["min(id) as min", "max(id) as max"], Where: ["type=", "search"]) ?? [[]]
+		let rows = try table!.select(["min(id) as min", "max(id) as max"], Where: ["id>", "0"]) ?? [[]]
 		
 		if(rows.count > 0 && rows[0].count > 0) {
 			minimum = rows[0][0]["min"] as! Int

@@ -44,16 +44,18 @@ func getRandIndexes(minimum: Int = minimum, maximum: Int = maximum) -> Set<Int> 
 }
 
 func getProducts(type: String, index: Int) -> Product {
-	var result: Product = Product(name: "error", description: "", value: 0, picture: "", type: product_type.empty)
+	var result: Product = Product(name: "error", description: "", value: 0, picture_string: "", type: product_type.empty)
 	
 	do {
 		let rows: MySQL.ResultSet = try table!.select(Where: ["id=", index, "LIMIT", call_size])?[0] ?? []
+//		let rows: MySQL.ResultSet = try table!.select(Where: ["id=", 1, "LIMIT", call_size])?[0] ?? []
 		
 		for i in 0..<rows.count {
+			
 			let product	= Product(name: rows[i]["name"] as! String,
-								  description: rows[i]["description"] as? String ?? "",
+								  description: rows[i]["source"] as? String ?? "",
 								  value: rows[i]["value"] as! Double,
-								  picture: rows[i]["picture"] as? String ?? "",
+								  picture_string: String(data: Data(rows[i]["picture"] as? [UInt8] ?? [0]), encoding: .utf8) ?? "",
 								  type: product_type.empty)
 			result = product
 		}

@@ -6,13 +6,14 @@
 //
 
 import Foundation
+import SwiftUI
 
 let call_size: Int = 10
 var minimum: Int = 1
 var maximum: Int = 10
 
-let products_empty: [Product] = [Product(name: "temp", description: "temp", value: 0, picture: "", type: product_type.empty),
-								  Product(name: "temp", description: "temp", value: 0, picture: "", type: product_type.empty)]
+let products_empty: [Product] = [Product(name: "error", value: 0),
+								 Product(name: "error", value: 0)]
 
 enum product_type: String {
 	case views
@@ -22,17 +23,38 @@ enum product_type: String {
 }
 
 class Product {
-	init(name: String, description: String, value: Double, picture: String, type: product_type) {
+	init(name: String, description: String = "", value: Double, picture_string: String = "", type: product_type = product_type.empty) {
 		self.name = name
-		self.description = description
+		self.source = description
 		self.value = value
-		self.picture = picture
 		self.type = type
+		
+		if picture_string != "" {
+			let data = Data(base64Encoded: picture_string)
+			let picture_temp = UIImage(data: data ?? Data([0])) ?? UIImage()
+			picture = picture_temp.resize(UIScreen.main.bounds.width, UIScreen.main.bounds.height) ?? UIImage()
+		}
 	}
 	
 	var name: String
-	var description: String
+	var source: String
 	var value: Double
-	var picture: String
-	var type: product_type
+	var picture: UIImage = UIImage()
+	var type: product_type = product_type.empty
+}
+
+
+extension UIImage {
+	func resize(_ width: CGFloat, _ height:CGFloat) -> UIImage? {
+		let widthRatio  = width / size.width
+		let heightRatio = height / size.height
+		let ratio = widthRatio > heightRatio ? heightRatio : widthRatio
+		let newSize = CGSize(width: size.width * ratio, height: size.height * ratio)
+		let rect = CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height)
+		UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+		self.draw(in: rect)
+		let newImage = UIGraphicsGetImageFromCurrentImageContext()
+		UIGraphicsEndImageContext()
+		return newImage
+	}
 }

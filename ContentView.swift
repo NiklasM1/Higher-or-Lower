@@ -46,6 +46,31 @@ struct searches: View {
 	
     var body: some View {
 		ZStack {
+//			Pictures
+			VStack {
+				Image(uiImage: products[0].picture)
+//				Image(uiImage: UIImage())
+				
+				Image(uiImage: products[1].picture)
+//				Image(uiImage: UIImage())
+			}
+			
+//			Rectangles
+			VStack {
+				Rectangle()
+					.size(width: bounds.width, height: bounds.height / 2)
+					.foregroundColor(.blue)
+					.ignoresSafeArea()
+					.opacity(0.2)
+					.onTapGesture { pressed(upper: false) }
+				Rectangle()
+					.size(width: bounds.width, height: bounds.height / 2)
+					.foregroundColor(.red)
+					.ignoresSafeArea()
+					.opacity(0.2)
+					.onTapGesture { pressed(upper: true) }
+			}
+			
 //			Score
 			VStack {
 				HStack {
@@ -97,21 +122,32 @@ struct searches: View {
 				
 				Spacer()
 			}
-		
-//			Rectangles
+			
+//			Source Link
 			VStack {
-				Rectangle()
-					.size(width: bounds.width, height: bounds.height / 2)
-					.foregroundColor(.blue)
-					.ignoresSafeArea()
-					.opacity(0.1)
-					.onTapGesture { pressed(upper: false) }
-				Rectangle()
-					.size(width: bounds.width, height: bounds.height / 2)
-					.foregroundColor(.red)
-					.ignoresSafeArea()
-					.opacity(0.1)
-					.onTapGesture { pressed(upper: true) }
+				HStack {
+					Spacer()
+					
+					Text(.init("[\(products[0].source.prefix(10))](https://\(products[0].source))"))
+						.font(Font.caption)
+						.padding()
+					
+					Spacer()
+				}
+				
+				Spacer()
+				
+				
+				HStack {
+					Spacer()
+					
+					Text(.init("[\(products[1].source.prefix(10))](https://\(products[1].source))"))
+						.font(Font.caption)
+						.padding()
+					
+					Spacer()
+				}
+				
 			}
 			
 //			Buttons

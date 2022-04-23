@@ -11,7 +11,7 @@ import MySQLDriver
 var con: MySQL.Connection?
 var table: MySQL.Table?
 
-func setupConnection(type: String) -> (Int, Int) {
+func setupConnection(table_type: product_type) -> (Int, Int) {
 	do {
 		con = try MySQL.Connection(addr: "spacem.cc", user:"HigherOrLower", passwd:"oJ1@K91Hl[", dbname:"HigherOrLower", port: 3307)
 		try con?.open()
@@ -19,7 +19,7 @@ func setupConnection(type: String) -> (Int, Int) {
 			print("Failed to open Connection")
 			abort()
 		}
-		table = con!.getTable(type)
+		table = con!.getTable(table_type.rawValue)
 		if table == nil {
 			print("Failed to get Table")
 			abort()
@@ -41,27 +41,22 @@ func getRandNum(minimum: Int, maximum: Int, count: Int = 50) -> [Int] {
 	return Array(set)
 }
 
-func getProducts(type: String, index: Int) -> Product {
-	var result: Product = Product(name: "error", description: "", value: 0, picture_string: "", type: product_type.empty)
-	
+func getProduct(table_type: product_type, index: Int) -> Product {
 	do {
-		let rows: MySQL.ResultSet = try table!.select(Where: ["id=", index, "LIMIT", call_size])?[0] ?? []
-//		let rows: MySQL.ResultSet = try table!.select(Where: ["id=", 1, "LIMIT", call_size])?[0] ?? []
+		let rows: MySQL.ResultSet = try table!.select(Where: ["id=", index])?[0] ?? []
 		
 		for i in 0..<rows.count {
-			
-			let product	= Product(name: rows[i]["name"] as! String,
+			return Product(name: rows[i]["name"] as! String,
 								  description: rows[i]["source"] as? String ?? "",
 								  value: rows[i]["value"] as! Double,
 								  picture_string: String(data: Data(rows[i]["picture"] as? [UInt8] ?? [0]), encoding: .utf8) ?? "",
-								  type: product_type.empty)
-			result = product
+								  type: product_type.Empty)
 		}
 	} catch {
 		print(error)
 	}
 	
-	return result
+	return Product(name: "error", value: 0)
 }
 
 private func getLimits() -> (Int, Int) {

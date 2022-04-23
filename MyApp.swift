@@ -4,7 +4,8 @@ import SwiftUI
 struct MyApp: App {
     var body: some Scene {
         WindowGroup {
-			searches()
+			Menu()
+//			searches(type: product_type.Search)
         }
     }
 }

@@ -1,8 +1,23 @@
 import SwiftUI
 
 struct searches: View {
+	init(type: product_type) {
+		self.type = type
+		
+		switch type {
+			case .Views:
+				self.type_index = 0
+			case .Price:
+				self.type_index = 1
+			case .Search:
+				self.type_index = 2
+			case .Empty:
+				self.type_index = 3
+		}
+	}
+	
 	func fillArray() {
-		products.append(getProducts(type: "Search", index: randomNumbers.popLast()!))
+		products.append(getProduct(table_type: type, index: randomNumbers.popLast()!))
 		
 		if randomNumbers.count <= 0 {
 			randomNumbers = getRandNum(minimum: minimum, maximum: maximum)
@@ -13,19 +28,20 @@ struct searches: View {
 		}
 	}
 	
-	func pressed(upper: Bool) {
-		products.remove(at: 0)
-		fillArray()
-		
-		if  (upper && products[0].value <= products[1].value) ||
-			(!upper && products[0].value >= products[1].value) ||
-			(products[0].value == 0 || products[1].value == 0) {
+	func pressed(higher: Bool) {
+		if (higher && products[0].value <= products[1].value) ||
+			(!higher && products[0].value >= products[1].value) {
+			products.remove(at: 0)
+			fillArray()
 			score += 1
 			return
 		}
 		
+		products.remove(at: 0)
+		fillArray()
+		
 		highScore = max(highScore, score)
-		UserDefaults.standard.set(highScore, forKey: "HighScoreSearch")
+		UserDefaults.standard.set(highScore, forKey: "HS\(type.rawValue)")
 		score = 0
 		return
 	}
@@ -34,7 +50,9 @@ struct searches: View {
 	@State private var score: Int = 0
 	@State private var highScore: Int = 0
 	@State private var products: [Product] = products_empty
-	
+
+	var type: product_type
+	var type_index: Int
 	private var bounds = UIScreen.main.bounds
 	
     var body: some View {
@@ -55,13 +73,13 @@ struct searches: View {
 					.foregroundColor(.blue)
 					.ignoresSafeArea()
 					.opacity(0.2)
-					.onTapGesture { pressed(upper: false) }
+					.onTapGesture { pressed(higher: false) }
 				Rectangle()
 					.size(width: bounds.width, height: bounds.height / 2)
 					.foregroundColor(.red)
 					.ignoresSafeArea()
 					.opacity(0.2)
-					.onTapGesture { pressed(upper: true) }
+					.onTapGesture { pressed(higher: true) }
 			}
 			
 //			Score
@@ -84,14 +102,14 @@ struct searches: View {
 						.font(Font.title2)
 						.bold()
 						.padding()
-					Text("has")
+					Text(texts[0][type_index])
 						.font(Font.caption)
 					Text("\(Int(products[0].value))")
 						.font(Font.largeTitle)
 						.bold()
 						.padding(1)
 						.foregroundColor(.yellow)
-					Text("average monthly searches")
+					Text(texts[1][type_index])
 						.font(Font.caption)
 				}
 				
@@ -102,14 +120,14 @@ struct searches: View {
 						.font(Font.title2)
 						.bold()
 						.padding()
-					Text("has")
+					Text(texts[0][type_index])
 						.font(Font.caption)
 					Text("???")
 						.font(Font.largeTitle)
 						.bold()
 						.padding(1)
 						.foregroundColor(.yellow)
-					Text("average monthly searches")
+					Text(texts[1][type_index])
 						.font(Font.caption)
 				}
 				
@@ -149,13 +167,13 @@ struct searches: View {
 				HStack {
 					Spacer()
 					Button {
-						pressed(upper: false)
+						pressed(higher: false)
 					} label: {
 						Label("LOWER", systemImage: "arrowtriangle.down.fill")
 					}.buttonStyle(GrowingButton())
 					Spacer()
 					Button {
-						pressed(upper: true)
+						pressed(higher: true)
 					} label: {
 						Label("HIGHER", systemImage: "arrowtriangle.up.fill")
 					}.buttonStyle(GrowingButton())
@@ -165,7 +183,7 @@ struct searches: View {
 			}
 		}.onAppear{
 			highScore = UserDefaults.standard.integer(forKey: "HighScoreSearch")
-			(minimum, maximum) = setupConnection(type: "Search")
+			(minimum, maximum) = setupConnection(table_type: type)
 			randomNumbers = getRandNum(minimum: minimum, maximum: maximum)
 			fillArray()
 			products.remove(at: 0)

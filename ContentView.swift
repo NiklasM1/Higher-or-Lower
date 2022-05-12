@@ -17,6 +17,7 @@ struct searches: View {
 	}
 	
 	func getItem(type: product_type, id: Int, completion: @escaping (_ json: Any?, _ error: Error?)->()) {
+//		let json: [String: Any] = ["type": type.rawValue, "id": 1]
 		let json: [String: Any] = ["type": type.rawValue, "id": id]
 		let jsonData = try? JSONSerialization.data(withJSONObject: json)
 		
@@ -152,15 +153,6 @@ struct searches: View {
 	
     var body: some View {
 		ZStack {
-//			Pictures
-			VStack {
-				Image(uiImage: products[0].picture)
-					.ignoresSafeArea()
-				
-				Image(uiImage: products[1].picture)
-					.ignoresSafeArea()
-			}
-			
 //			Rectangles
 			VStack {
 				Rectangle()
@@ -168,12 +160,22 @@ struct searches: View {
 					.foregroundColor(.blue)
 					.ignoresSafeArea()
 					.opacity(0.2)
+					.background(
+						Image(uiImage: products[0].picture)
+							.resizable()
+							.ignoresSafeArea()
+					)
 					.onTapGesture { pressed(higher: false) }
 				Rectangle()
 					.size(width: bounds.width, height: bounds.height / 2)
 					.foregroundColor(.red)
 					.ignoresSafeArea()
 					.opacity(0.2)
+					.background(
+						Image(uiImage: products[1].picture)
+							.resizable()
+							.ignoresSafeArea()
+					)
 					.onTapGesture { pressed(higher: true) }
 			}
 			
@@ -298,7 +300,7 @@ struct searches: View {
 				Spacer()
 			}
 		}.onAppear{
-			highScore = UserDefaults.standard.integer(forKey: "HighScoreSearch")
+			highScore = UserDefaults.standard.integer(forKey: "HS\(type.rawValue)")
 			randomNumbers = getRandNum()
 			fillArray()
 		}

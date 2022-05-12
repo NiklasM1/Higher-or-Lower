@@ -16,15 +16,109 @@ struct searches: View {
 		}
 	}
 	
-	func fillArray() {
-		products.append(getProduct(table_type: type, index: randomNumbers.popLast()!))
+	func getItem(type: product_type, id: Int, completion: @escaping (_ json: Any?, _ error: Error?)->()) {
+		let json: [String: Any] = ["type": type.rawValue, "id": id]
+		let jsonData = try? JSONSerialization.data(withJSONObject: json)
 		
-		if randomNumbers.count <= 0 {
-			randomNumbers = getRandNum(minimum: minimum, maximum: maximum)
+		let url = URL(string: "http://spacem.cc:6000/HigherOrLower.php")!
+		var request = URLRequest(url: url)
+		request.httpMethod = "POST"
+		request.httpBody = jsonData
+		
+		let task = URLSession.shared.dataTask(with: request) { data, response, error in
+			guard let data = data, error == nil else {
+				completion(nil, error)
+				return
+			}
+			let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
+			if responseJSON is [String: Any] {
+				let dataArray = responseJSON as! [String: Any]
+				completion(dataArray, nil)
+			}
 		}
 		
-		if products.count <= 3 {
+		task.resume()
+	}
+	
+	func getRandNum(count: Int = 50) -> [Int] {
+		var maximum = 10
+		let group = DispatchGroup()
+		
+		group.enter()
+		
+		DispatchQueue.global().async {
+			getItem(type: type, id: 0) { json, error in
+				if error != nil {
+					debugPrint(error?.localizedDescription ?? "No data")
+				} else {
+					let data = json as! [String: Any]
+					maximum = Int(data["COUNT(*)"] as? String ?? "") ?? 0
+				}
+				group.leave()
+			}
+		}
+		
+		group.wait()
+		
+		var set = Set<Int>()
+		while set.count < min(count, maximum-1) {
+			set.insert(Int.random(in: 1...maximum))
+		}
+		return Array(set)
+	}
+	
+	func fillArray() {
+		let group = DispatchGroup()
+		
+		group.enter()
+		
+		DispatchQueue.global().async {
+			getItem(type: type, id: randomNumbers.popLast()!) { json, error in
+				if error != nil {
+					debugPrint(error?.localizedDescription ?? "No data")
+					products.append(Product(name: "error", value: 0))
+				} else {
+					let data = json as! [String: Any]
+					
+//					var id = Int(data["id"] as? String ?? "") ?? 0
+					let name = data["name"] as? String ?? ""
+					let value = Double(data["value"] as? String ?? "") ?? 0
+					var picture = ""
+					var source = ""
+					
+					if let pictureTemp = data["picture"] as? String {
+						picture = pictureTemp
+					}
+					
+					if let sourceTemp = data["source"] as? String {
+						source = sourceTemp
+					}
+					
+					debugPrint(name)
+					products.append(Product(name: name, description: source, value: value, picture_string: picture, type: product_type.Empty))
+				}
+				group.leave()
+			}
+		}
+		
+		group.wait()
+		
+		if randomNumbers.count == 0 {
+			randomNumbers = getRandNum()
+		}
+		
+		if products.count <= 5 {
 			fillArray()
+		} else {
+			for (index, x) in products.enumerated() {
+				if x.name == "error" && products.count >= 3 { products.remove(at: index) }
+			}
+			for (index, x) in products.enumerated() {
+				if x.name == "error" && products.count >= 3 { products.remove(at: index) }
+			}
+			for (index, x) in products.enumerated() {
+				if x.name == "error" && products.count >= 3 { products.remove(at: index) }
+			}
 		}
 	}
 	
@@ -50,6 +144,7 @@ struct searches: View {
 	@State private var score: Int = 0
 	@State private var highScore: Int = 0
 	@State private var products: [Product] = products_empty
+	@Environment(\.presentationMode) var presentationMode
 
 	var type: product_type
 	var type_index: Int
@@ -85,12 +180,22 @@ struct searches: View {
 //			Score
 			VStack {
 				HStack {
+					Spacer()
+					
+					Button {
+						presentationMode.wrappedValue.dismiss()
+					} label: {
+						Label("", systemImage: "x.circle")
+					}.padding().scaleEffect(1.3)
+				}
+				
+				Spacer()
+				
+				HStack {
 					Text("Score: \(score)").bold().padding()
 					Spacer()
 					Text("High Score: \(highScore)").bold().padding()
 				}.padding()
-				
-				Spacer()
 			}
 			
 //			Texts
@@ -101,14 +206,24 @@ struct searches: View {
 					Text("\"\(products[0].name)\"")
 						.font(Font.title2)
 						.bold()
+						.lineLimit(1)
 						.padding()
 					Text(texts[0][type_index])
 						.font(Font.caption)
-					Text("\(Int(products[0].value))")
-						.font(Font.largeTitle)
-						.bold()
-						.padding(1)
-						.foregroundColor(.yellow)
+					if type == .Price {
+						Text("\(Double(products[0].value), specifier: "%.2f")$")
+							.font(Font.largeTitle)
+							.bold()
+							.padding(1)
+							.foregroundColor(.yellow)
+					} else {
+						Text("\(Int(products[0].value))")
+							.font(Font.largeTitle)
+							.bold()
+							.padding(1)
+							.foregroundColor(.yellow)
+					}
+					
 					Text(texts[1][type_index])
 						.font(Font.caption)
 				}
@@ -119,6 +234,7 @@ struct searches: View {
 					Text("\"\(products[1].name)\"")
 						.font(Font.title2)
 						.bold()
+						.lineLimit(1)
 						.padding()
 					Text(texts[0][type_index])
 						.font(Font.caption)
@@ -183,11 +299,8 @@ struct searches: View {
 			}
 		}.onAppear{
 			highScore = UserDefaults.standard.integer(forKey: "HighScoreSearch")
-			(minimum, maximum) = setupConnection(table_type: type)
-			randomNumbers = getRandNum(minimum: minimum, maximum: maximum)
+			randomNumbers = getRandNum()
 			fillArray()
-			products.remove(at: 0)
-			products.remove(at: 0)
 		}
 	}
 }

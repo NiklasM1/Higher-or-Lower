@@ -1,4 +1,4 @@
-# HigherOrLower
+# Higher-or-Lower
 
 Simple Higher or Lower game. Has three modes, Searches (on Google), Views (on YouTube) and Price (on Amazon and other Sides).
 
